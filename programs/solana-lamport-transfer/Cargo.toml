@@ -10,6 +10,11 @@ repository = "https://github.com/Ohad-G-5790/solana-lamport-transfer"
 name = "solana_lamport_transfer"
 crate-type = ["cdylib", "lib"]
 
+[features]
+no-entrypoint = []
+custom-heap = []
+custom-panic = []
+
 [dependencies]
 solana-program = "2"
 
