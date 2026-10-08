@@ -101,13 +101,31 @@ mod tests {
 
     #[test]
     fn unpacks_operations() {
-        assert_eq!(Operation::unpack(&with_operand(0, 5)).unwrap(), Operation::Add(5));
-        assert_eq!(Operation::unpack(&with_operand(1, 5)).unwrap(), Operation::Subtract(5));
-        assert_eq!(Operation::unpack(&with_operand(2, 5)).unwrap(), Operation::Multiply(5));
+        assert_eq!(
+            Operation::unpack(&with_operand(0, 5)).unwrap(),
+            Operation::Add(5)
+        );
+        assert_eq!(
+            Operation::unpack(&with_operand(1, 5)).unwrap(),
+            Operation::Subtract(5)
+        );
+        assert_eq!(
+            Operation::unpack(&with_operand(2, 5)).unwrap(),
+            Operation::Multiply(5)
+        );
         assert_eq!(Operation::unpack(&[3]).unwrap(), Operation::Reset);
-        assert_eq!(Operation::unpack(&[]), Err(ProgramError::InvalidInstructionData));
-        assert_eq!(Operation::unpack(&[9]), Err(ProgramError::InvalidInstructionData));
-        assert_eq!(Operation::unpack(&[0, 1]), Err(ProgramError::InvalidInstructionData));
+        assert_eq!(
+            Operation::unpack(&[]),
+            Err(ProgramError::InvalidInstructionData)
+        );
+        assert_eq!(
+            Operation::unpack(&[9]),
+            Err(ProgramError::InvalidInstructionData)
+        );
+        assert_eq!(
+            Operation::unpack(&[0, 1]),
+            Err(ProgramError::InvalidInstructionData)
+        );
     }
 
     #[test]
@@ -116,7 +134,13 @@ mod tests {
         assert_eq!(apply(5, &Operation::Subtract(3)).unwrap(), 2);
         assert_eq!(apply(4, &Operation::Multiply(3)).unwrap(), 12);
         assert_eq!(apply(99, &Operation::Reset).unwrap(), 0);
-        assert_eq!(apply(1, &Operation::Subtract(2)), Err(ProgramError::ArithmeticOverflow));
-        assert_eq!(apply(u64::MAX, &Operation::Add(1)), Err(ProgramError::ArithmeticOverflow));
+        assert_eq!(
+            apply(1, &Operation::Subtract(2)),
+            Err(ProgramError::ArithmeticOverflow)
+        );
+        assert_eq!(
+            apply(u64::MAX, &Operation::Add(1)),
+            Err(ProgramError::ArithmeticOverflow)
+        );
     }
 }

@@ -23,9 +23,9 @@ use solana_program::{
     program_error::ProgramError,
     pubkey::Pubkey,
     rent::Rent,
-    system_instruction, system_program,
     sysvar::Sysvar,
 };
+use solana_system_interface::{instruction as system_instruction, program as system_program};
 
 entrypoint!(process_instruction);
 
@@ -94,7 +94,11 @@ pub fn process_instruction(
                     STORAGE_SIZE as u64,
                     program_id,
                 ),
-                &[user.clone(), storage.clone(), system_program_account.clone()],
+                &[
+                    user.clone(),
+                    storage.clone(),
+                    system_program_account.clone(),
+                ],
                 &[&[SEED_PREFIX, user.key.as_ref(), &[bump]]],
             )?;
             msg!("Initialized storage at {}", storage.key);
@@ -125,8 +129,14 @@ mod tests {
         let mut set = vec![1];
         set.extend_from_slice(&7u64.to_le_bytes());
         assert_eq!(Instruction::unpack(&set).unwrap(), Instruction::Set(7));
-        assert_eq!(Instruction::unpack(&[1, 0]), Err(ProgramError::InvalidInstructionData));
-        assert_eq!(Instruction::unpack(&[2]), Err(ProgramError::InvalidInstructionData));
+        assert_eq!(
+            Instruction::unpack(&[1, 0]),
+            Err(ProgramError::InvalidInstructionData)
+        );
+        assert_eq!(
+            Instruction::unpack(&[2]),
+            Err(ProgramError::InvalidInstructionData)
+        );
     }
 
     #[test]

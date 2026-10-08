@@ -48,14 +48,20 @@ impl Tally {
 
     pub fn upvote(self) -> Result<Self, ProgramError> {
         Ok(Tally {
-            up: self.up.checked_add(1).ok_or(ProgramError::ArithmeticOverflow)?,
+            up: self
+                .up
+                .checked_add(1)
+                .ok_or(ProgramError::ArithmeticOverflow)?,
             ..self
         })
     }
 
     pub fn downvote(self) -> Result<Self, ProgramError> {
         Ok(Tally {
-            down: self.down.checked_add(1).ok_or(ProgramError::ArithmeticOverflow)?,
+            down: self
+                .down
+                .checked_add(1)
+                .ok_or(ProgramError::ArithmeticOverflow)?,
             ..self
         })
     }
@@ -100,12 +106,21 @@ mod tests {
 
     #[test]
     fn counts_votes() {
-        let tally = Tally::default().upvote().unwrap().upvote().unwrap().downvote().unwrap();
+        let tally = Tally::default()
+            .upvote()
+            .unwrap()
+            .upvote()
+            .unwrap()
+            .downvote()
+            .unwrap();
         assert_eq!(tally, Tally { up: 2, down: 1 });
     }
 
     #[test]
     fn rejects_small_buffers() {
-        assert_eq!(Tally::unpack(&[0; 8]), Err(ProgramError::AccountDataTooSmall));
+        assert_eq!(
+            Tally::unpack(&[0; 8]),
+            Err(ProgramError::AccountDataTooSmall)
+        );
     }
 }

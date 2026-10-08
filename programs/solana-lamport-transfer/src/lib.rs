@@ -16,8 +16,8 @@ use solana_program::{
     program::invoke,
     program_error::ProgramError,
     pubkey::Pubkey,
-    system_instruction, system_program,
 };
+use solana_system_interface::{instruction as system_instruction, program as system_program};
 
 entrypoint!(process_instruction);
 
@@ -54,7 +54,12 @@ pub fn process_instruction(
     }
 
     let amount = parse_amount(instruction_data)?;
-    msg!("Transferring {} lamports from {} to {}", amount, sender.key, recipient.key);
+    msg!(
+        "Transferring {} lamports from {} to {}",
+        amount,
+        sender.key,
+        recipient.key
+    );
 
     invoke(
         &system_instruction::transfer(sender.key, recipient.key, amount),
@@ -80,7 +85,13 @@ mod tests {
 
     #[test]
     fn rejects_zero_and_short_data() {
-        assert_eq!(parse_amount(&0u64.to_le_bytes()), Err(ProgramError::InvalidInstructionData));
-        assert_eq!(parse_amount(&[1, 2]), Err(ProgramError::InvalidInstructionData));
+        assert_eq!(
+            parse_amount(&0u64.to_le_bytes()),
+            Err(ProgramError::InvalidInstructionData)
+        );
+        assert_eq!(
+            parse_amount(&[1, 2]),
+            Err(ProgramError::InvalidInstructionData)
+        );
     }
 }

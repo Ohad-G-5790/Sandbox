@@ -73,7 +73,10 @@ mod tests {
 
     #[test]
     fn rejects_short_buffers() {
-        assert_eq!(read_counter(&[1, 2, 3]), Err(ProgramError::AccountDataTooSmall));
+        assert_eq!(
+            read_counter(&[1, 2, 3]),
+            Err(ProgramError::AccountDataTooSmall)
+        );
     }
 
     #[test]

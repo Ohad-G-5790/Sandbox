@@ -83,7 +83,10 @@ mod tests {
     #[test]
     fn rejects_messages_that_do_not_fit() {
         let mut buf = [0u8; 8];
-        assert_eq!(write_message(&mut buf, "too long!"), Err(ProgramError::AccountDataTooSmall));
+        assert_eq!(
+            write_message(&mut buf, "too long!"),
+            Err(ProgramError::AccountDataTooSmall)
+        );
     }
 
     #[test]

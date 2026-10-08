@@ -1259,6 +1259,7 @@ name = "solana-lamport-transfer"
 version = "0.1.0"
 dependencies = [
  "solana-program",
+ "solana-system-interface",
 ]
 
 [[package]]

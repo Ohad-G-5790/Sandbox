@@ -1368,6 +1368,7 @@ name = "solana-pda-storage"
 version = "0.1.0"
 dependencies = [
  "solana-program",
+ "solana-system-interface",
 ]
 
 [[package]]
