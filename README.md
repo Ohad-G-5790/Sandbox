@@ -17,5 +17,15 @@ helper functions that run with plain `cargo test`.
 | [solana-message-board](programs/solana-message-board) | Stores a short UTF-8 message in an account |
 | [solana-account-inspector](programs/solana-account-inspector) | Logs metadata about every account passed in |
 
-Each program is also published as its own public repository under
-[github.com/Ohad-G-5790](https://github.com/Ohad-G-5790).
+## Publishing each program as its own repository
+
+`scripts/publish-repos.sh` creates one public GitHub repository per program and pushes
+the program into it. It needs the [GitHub CLI](https://cli.github.com/) logged in:
+
+```sh
+gh auth login
+gh auth setup-git
+scripts/publish-repos.sh
+```
+
+Run it with `DRY_RUN=1` first to see what it would do without touching GitHub.
