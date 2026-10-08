@@ -44,5 +44,5 @@ for dir in programs/*/; do
   fi
 
   rm -rf "$tmp"
-  echo "Published $url"
+  [[ -z "$DRY_RUN" ]] && echo "Published $url"
 done
