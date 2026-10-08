@@ -1,0 +1,17 @@
+[package]
+name = "solana-counter"
+version = "0.1.0"
+edition = "2021"
+description = "A native Solana program that increments a u64 counter stored in an account"
+license = "MIT"
+repository = "https://github.com/Ohad-G-5790/solana-counter"
+
+[lib]
+name = "solana_counter"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "2"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

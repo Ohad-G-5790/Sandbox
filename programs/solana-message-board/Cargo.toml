@@ -1,0 +1,17 @@
+[package]
+name = "solana-message-board"
+version = "0.1.0"
+edition = "2021"
+description = "A native Solana program that stores a short UTF-8 message in an account"
+license = "MIT"
+repository = "https://github.com/Ohad-G-5790/solana-message-board"
+
+[lib]
+name = "solana_message_board"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "2"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

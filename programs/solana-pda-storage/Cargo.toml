@@ -1,0 +1,17 @@
+[package]
+name = "solana-pda-storage"
+version = "0.1.0"
+edition = "2021"
+description = "A native Solana program that creates a PDA account and stores a u64 in it"
+license = "MIT"
+repository = "https://github.com/Ohad-G-5790/solana-pda-storage"
+
+[lib]
+name = "solana_pda_storage"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "2"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

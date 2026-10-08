@@ -1,0 +1,17 @@
+[package]
+name = "solana-account-inspector"
+version = "0.1.0"
+edition = "2021"
+description = "A native Solana program that logs metadata about every account passed to it"
+license = "MIT"
+repository = "https://github.com/Ohad-G-5790/solana-account-inspector"
+
+[lib]
+name = "solana_account_inspector"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "2"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

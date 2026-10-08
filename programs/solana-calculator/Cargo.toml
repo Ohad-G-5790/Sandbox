@@ -1,0 +1,17 @@
+[package]
+name = "solana-calculator"
+version = "0.1.0"
+edition = "2021"
+description = "A native Solana program that performs add, subtract, multiply and reset on an on-chain value"
+license = "MIT"
+repository = "https://github.com/Ohad-G-5790/solana-calculator"
+
+[lib]
+name = "solana_calculator"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "2"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

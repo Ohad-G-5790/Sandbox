@@ -1,0 +1,17 @@
+[package]
+name = "solana-lamport-transfer"
+version = "0.1.0"
+edition = "2021"
+description = "A native Solana program that transfers lamports through a CPI to the System Program"
+license = "MIT"
+repository = "https://github.com/Ohad-G-5790/solana-lamport-transfer"
+
+[lib]
+name = "solana_lamport_transfer"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "2"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
