@@ -1,0 +1,16 @@
+{
+  "name": "velocity-piano",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Velocity-sensitive sampled grand piano for the browser: MIDI keyboards, computer keyboard, mouse, touch and pen.",
+  "type": "module",
+  "scripts": {
+    "start": "npx --yes serve -l 8080 .",
+    "test": "node test/run.mjs",
+    "build:samples": "node tools/build-samples.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  },
+  "license": "MIT"
+}

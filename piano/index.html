@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Piano</title>
+  <meta name="description" content="A velocity-sensitive sampled grand piano you can play with any MIDI keyboard, your computer keyboard, a mouse, touch or a pen.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2318181d'/%3E%3Crect x='10' y='14' width='44' height='36' rx='3' fill='%23f3f1ea'/%3E%3Cg fill='%2318181d'%3E%3Crect x='17' y='14' width='6' height='22'/%3E%3Crect x='29' y='14' width='6' height='22'/%3E%3Crect x='41' y='14' width='6' height='22'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>Piano</h1>
+      <p class="tagline">Velocity-sensitive sampled grand. Play it with any MIDI keyboard, your computer keyboard, the mouse, touch, or a pen.</p>
+    </div>
+    <div class="status" id="status" aria-live="polite">
+      <span class="pill" id="audioStatus" data-state="idle">Audio: click to start</span>
+      <span class="pill" id="loadStatus" data-state="loading">Loading samples…</span>
+      <span class="pill" id="midiStatus" data-state="idle">MIDI: not connected</span>
+      <button id="midiConnect" class="btn small" type="button">Connect MIDI</button>
+    </div>
+  </header>
+
+  <section class="controls" aria-label="Controls">
+    <div class="group">
+      <label for="instrument">Instrument</label>
+      <select id="instrument">
+        <option value="sampled">Grand piano (sampled)</option>
+        <option value="synth">Synth piano</option>
+      </select>
+    </div>
+    <div class="group">
+      <label for="volume">Volume <output id="volumeOut" for="volume">80</output></label>
+      <input id="volume" type="range" min="0" max="100" value="80">
+    </div>
+    <div class="group">
+      <label for="reverb">Room <output id="reverbOut" for="reverb">25</output></label>
+      <input id="reverb" type="range" min="0" max="100" value="25">
+    </div>
+    <div class="group wide">
+      <label for="dynamics">Typing dynamics <output id="dynamicsOut" for="dynamics">mf · 76</output></label>
+      <input id="dynamics" type="range" min="1" max="127" value="76">
+      <small>↑ ↓ to change · hold <kbd>Shift</kbd> for an accent</small>
+    </div>
+    <div class="group">
+      <label for="midiCurve">MIDI velocity curve</label>
+      <select id="midiCurve">
+        <option value="linear">Linear</option>
+        <option value="soft">Softer (heavy keys)</option>
+        <option value="hard">Harder (light keys)</option>
+      </select>
+    </div>
+    <div class="group">
+      <label>Typing range <output id="octaveOut">C3 – G5</output></label>
+      <div class="row">
+        <button id="octDown" class="btn" type="button" title="Octave down (←)" aria-label="Octave down">−</button>
+        <span id="octaveVal" class="mono">0</span>
+        <button id="octUp" class="btn" type="button" title="Octave up (→)" aria-label="Octave up">+</button>
+      </div>
+    </div>
+    <div class="group">
+      <label>Pedal</label>
+      <button id="sustainBtn" class="btn pedal" type="button" aria-pressed="false">Sustain <kbd>Space</kbd></button>
+    </div>
+    <div class="group meter wide">
+      <label>Velocity <output id="velOut">–</output></label>
+      <div class="bar"><div id="velBar"></div></div>
+      <small id="velSource">play a note to see how hard it was hit</small>
+    </div>
+  </section>
+
+  <main class="keyboard-wrap">
+    <div class="keyboard-scroll">
+      <div id="keys" class="keys" role="application" aria-label="Piano keys"></div>
+    </div>
+  </main>
+
+  <section class="help">
+    <h2>How to play</h2>
+    <div class="help-grid">
+      <div>
+        <h3>MIDI keyboard</h3>
+        <p>Plug in any class-compliant USB or Bluetooth MIDI keyboard and click <em>Connect MIDI</em>. Key velocity, sustain, sostenuto and soft pedals all work. Works in Chrome, Edge, Opera and Firefox.</p>
+      </div>
+      <div>
+        <h3>Computer keyboard</h3>
+        <p>Two rows of white keys with the black keys above them, like a piano. Physical key positions are used, so any layout works.</p>
+        <p class="keymap"><kbd>Z</kbd>–<kbd>/</kbd> row: C3 – E4 &nbsp;·&nbsp; <kbd>Q</kbd>–<kbd>]</kbd> row: C4 – G5<br>
+        <kbd>Space</kbd> sustain &nbsp;·&nbsp; <kbd>Shift</kbd> accent &nbsp;·&nbsp; <kbd>↑</kbd><kbd>↓</kbd> dynamics &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> octave &nbsp;·&nbsp; <kbd>Esc</kbd> all notes off</p>
+      </div>
+      <div>
+        <h3>Mouse, touch, pen</h3>
+        <p>Hit a key near its front edge for a loud note and near the top for a soft one. Drag across keys for a glissando; multi-touch chords work. Pens use real pressure.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Piano samples: <a href="https://archive.org/details/SalamanderGrandPianoV3" rel="noopener">Salamander Grand Piano V3</a> by Alexander Holm, <a href="https://creativecommons.org/licenses/by/3.0/" rel="noopener">CC BY 3.0</a>. Everything runs locally in your browser; nothing is uploaded.</p>
+  </footer>
+
+  <div id="overlay" class="overlay">
+    <div class="card">
+      <div class="logo" aria-hidden="true"><span></span><span class="b"></span><span></span><span class="b"></span><span></span><span></span><span class="b"></span><span></span><span class="b"></span><span></span><span class="b"></span><span></span></div>
+      <h2>Click, tap, or press any key to start</h2>
+      <p>Browsers only start audio after a gesture. Your MIDI keyboard will be connected at the same time.</p>
+    </div>
+  </div>
+
+  <script src="engine.js" defer></script>
+  <script src="input.js" defer></script>
+  <script src="samples.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

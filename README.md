@@ -29,3 +29,9 @@ scripts/publish-repos.sh
 ```
 
 Run it with `DRY_RUN=1` first to see what it would do without touching GitHub.
+
+## Piano app
+
+[`piano/`](piano) is a velocity-sensitive grand piano that runs in the browser: open
+`piano/index.html` and play it with any MIDI keyboard (real key velocity and pedals),
+your computer keyboard, the mouse, touch or a pen. See [piano/README.md](piano/README.md).
