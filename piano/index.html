@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
-  <title>Piano</title>
+  <title>Velocity Piano</title>
   <meta name="description" content="A velocity-sensitive sampled grand piano you can play with any MIDI keyboard, your computer keyboard, a mouse, touch or a pen.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2318181d'/%3E%3Crect x='10' y='14' width='44' height='36' rx='3' fill='%23f3f1ea'/%3E%3Cg fill='%2318181d'%3E%3Crect x='17' y='14' width='6' height='22'/%3E%3Crect x='29' y='14' width='6' height='22'/%3E%3Crect x='41' y='14' width='6' height='22'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
@@ -12,7 +12,7 @@
 <body>
   <header class="top">
     <div class="brand">
-      <h1>Piano</h1>
+      <h1>Velocity Piano</h1>
       <p class="tagline">Velocity-sensitive sampled grand. Play it with any MIDI keyboard, your computer keyboard, the mouse, touch, or a pen.</p>
     </div>
     <div class="status" id="status" aria-live="polite">
@@ -20,6 +20,7 @@
       <span class="pill" id="loadStatus" data-state="loading">Loading samples…</span>
       <span class="pill" id="midiStatus" data-state="idle">MIDI: not connected</span>
       <button id="midiConnect" class="btn small" type="button">Connect MIDI</button>
+      <a id="midiHelp" class="btn small" href="https://github.com/Ohad-G-5790/Sandbox/tree/claude/happy-hopper-vgexev/piano" target="_blank" rel="noopener" hidden>Get the app for MIDI</a>
     </div>
   </header>
 

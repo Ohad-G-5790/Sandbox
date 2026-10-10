@@ -24,7 +24,9 @@
 html, body { margin: 0; height: 100%; }
 
 body {
-  background: radial-gradient(1200px 500px at 50% -10%, #23262f 0%, var(--bg) 60%);
+  padding-inline: 16px;
+  padding-block: 0;
+  background: radial-gradient(1200px 500px at 50% -10%, #23262f 0%, var(--bg) 60%) var(--bg);
   color: var(--text);
   font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -53,7 +55,7 @@ small { color: var(--muted); font-size: 12px; }
 /* ---------- header ---------- */
 .top {
   display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;
-  padding: 18px 20px 12px;
+  padding-block: 18px 12px;
 }
 .tagline { color: var(--muted); font-size: 13px; margin-top: 2px; max-width: 60ch; }
 .status { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -72,7 +74,7 @@ small { color: var(--muted); font-size: 12px; }
 /* ---------- controls ---------- */
 .controls {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px;
-  margin: 0 20px 14px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  margin-block: 0 14px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
 }
 .group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .group.wide { grid-column: span 2; }
@@ -88,6 +90,7 @@ select, .btn {
 select:focus-visible, .btn:focus-visible, input[type="range"]:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 .btn:hover { background: #2e323c; }
 .btn.small { padding: 4px 10px; min-height: 0; font-size: 12.5px; border-radius: 999px; }
+a.btn.small { color: var(--text); text-decoration: none; }
 .btn.pedal { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .btn.pedal[aria-pressed="true"] { background: var(--accent); color: #1a1205; border-color: var(--accent); }
 .btn.pedal[aria-pressed="true"] kbd { background: rgba(0,0,0,0.18); border-color: transparent; color: inherit; }
@@ -98,7 +101,7 @@ input[type="range"] { width: 100%; margin: 6px 0; accent-color: var(--accent); c
 .meter #velBar { height: 100%; width: 0; background: var(--vc); border-radius: 999px; transition: width 80ms ease-out, background-color 80ms; }
 
 /* ---------- keyboard ---------- */
-.keyboard-wrap { padding: 0 20px; }
+.keyboard-wrap { min-width: 0; }
 .keyboard-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; scrollbar-color: var(--line) transparent; }
 .keys {
   --ww: calc(100% / 52);
@@ -142,18 +145,18 @@ input[type="range"] { width: 100%; margin: 6px 0; accent-color: var(--accent); c
 .key.black.down .label, .key.black.sus .label { color: rgba(255,255,255,0.85) !important; }
 
 /* ---------- help / footer ---------- */
-.help { margin: 18px 20px 0; padding: 14px 16px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.help { margin-block: 18px 0; padding: 14px 16px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
 .help h2 { margin-bottom: 10px; }
 .help-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 24px; }
 .help-grid p { color: var(--muted); font-size: 13.5px; margin-top: 4px; }
 .help-grid em { color: var(--text); font-style: normal; }
 .keymap { line-height: 2.1; }
-footer { margin-top: auto; padding: 18px 20px 22px; color: var(--muted); font-size: 12.5px; }
+footer { margin-top: auto; padding-block: 18px 22px; color: var(--muted); font-size: 12.5px; }
 
 /* ---------- start overlay ---------- */
 .overlay {
   position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
-  background: rgba(10, 10, 12, 0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  background: rgba(10, 10, 12, 0.5);
   cursor: pointer; transition: opacity 250ms;
 }
 .overlay.hidden { opacity: 0; pointer-events: none; visibility: hidden; transition: opacity 250ms, visibility 0s 250ms; }
@@ -169,10 +172,8 @@ footer { margin-top: auto; padding: 18px 20px 22px; color: var(--muted); font-si
 
 @media (max-width: 700px) {
   /* Phones: keys first, controls below, so the piano is playable without scrolling. */
-  .top { order: -2; padding: 14px 14px 10px; }
+  .top { order: -2; padding-block: 14px 10px; }
   .keyboard-wrap { order: -1; margin-bottom: 14px; }
-  .controls, .help, .keyboard-wrap { margin-left: 12px; margin-right: 12px; }
-  .keyboard-wrap { padding: 0; margin: 0 12px; }
   .group.wide { grid-column: span 1; }
   .keys { height: 190px; }
 }

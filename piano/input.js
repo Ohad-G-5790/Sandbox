@@ -189,7 +189,7 @@ class MidiInput {
     this.engine = engine;
     this.access = null;
     this.inputs = [];
-    this.status = "idle";        // idle | unsupported | requesting | denied | error | ready
+    this.status = "idle";        // idle | unsupported | requesting | denied | framed | error | ready
     this.error = null;
     this.gamma = 1;              // velocity curve exponent: <1 softer keyboards feel lighter, >1 heavier
     this.lastVelocity = null;
@@ -199,6 +199,8 @@ class MidiInput {
   }
 
   get supported() { return typeof navigator !== "undefined" && typeof navigator.requestMIDIAccess === "function"; }
+
+  static isEmbedded() { try { return window.self !== window.top; } catch (_) { return true; } }
 
   onChange(fn) { this._listeners.add(fn); return () => this._listeners.delete(fn); }
   _emit() { for (const fn of this._listeners) { try { fn(this); } catch (err) { console.error(err); } } }
@@ -217,7 +219,9 @@ class MidiInput {
       this.access = await navigator.requestMIDIAccess({ sysex: false });
     } catch (err) {
       this.error = err;
-      this.status = (err && (err.name === "SecurityError" || err.name === "NotAllowedError")) ? "denied" : "error";
+      const refused = err && (err.name === "SecurityError" || err.name === "NotAllowedError");
+      // Inside another page's frame (an embedded viewer) the browser's permissions policy blocks MIDI outright.
+      this.status = refused ? (MidiInput.isEmbedded() && err.name === "SecurityError" ? "framed" : "denied") : "error";
       this._emit();
       return false;
     }

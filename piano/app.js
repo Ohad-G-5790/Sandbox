@@ -22,7 +22,7 @@
   const pointer = new PointerInput(engine, keysEl).attach();
 
   const overlay = $("#overlay");
-  const audioStatus = $("#audioStatus"), loadStatus = $("#loadStatus"), midiStatus = $("#midiStatus"), midiConnect = $("#midiConnect");
+  const audioStatus = $("#audioStatus"), loadStatus = $("#loadStatus"), midiStatus = $("#midiStatus"), midiConnect = $("#midiConnect"), midiHelp = $("#midiHelp");
   const instrumentSel = $("#instrument"), volume = $("#volume"), reverb = $("#reverb"), dynamics = $("#dynamics"), midiCurve = $("#midiCurve");
   const sustainBtn = $("#sustainBtn"), velBar = $("#velBar"), velOut = $("#velOut"), velSource = $("#velSource");
 
@@ -188,6 +188,7 @@
       case "unsupported": setPill(midiStatus, "warn", "MIDI: not supported in this browser (use Chrome, Edge or Firefox)"); break;
       case "requesting": setPill(midiStatus, "loading", "MIDI: waiting for permission…"); break;
       case "denied": setPill(midiStatus, "bad", "MIDI: blocked. Allow MIDI for this site, then retry"); break;
+      case "framed": setPill(midiStatus, "warn", "MIDI: unavailable inside this embedded page"); break;
       case "error": setPill(midiStatus, "bad", "MIDI: " + ((midi.error && midi.error.message) || "error")); break;
       case "ready":
         if (names.length) setPill(midiStatus, "ok", "MIDI: " + names.join(", "));
@@ -196,7 +197,8 @@
       default: setPill(midiStatus, "idle", "MIDI: not connected");
     }
     keysEl.classList.toggle("midi-active", midi.status === "ready" && names.length > 0);
-    midiConnect.hidden = midi.status === "ready" || midi.status === "unsupported" || midi.status === "requesting";
+    midiConnect.hidden = midi.status === "ready" || midi.status === "unsupported" || midi.status === "requesting" || midi.status === "framed";
+    midiHelp.hidden = midi.status !== "framed";
   }
   midi.onChange(updateMidiStatus);
   updateMidiStatus();
