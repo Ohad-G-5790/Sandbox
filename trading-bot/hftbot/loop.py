@@ -128,6 +128,9 @@ class TradingLoop:
         gas = 0.0
 
         if self.risk.killed:
+            if self.portfolio.position:  # a flatten that came up short (thin book, failed swap) is retried every block
+                gas, flatten_fills = self._flatten(block)
+                fills += flatten_fills
             return self._record(block, Ladder.KILLED, fills, gas, note=self.risk.kill_reason or "")
         kill_reason = self.risk.check_account(self.portfolio, block.ts)
         if kill_reason:
@@ -174,15 +177,16 @@ class TradingLoop:
     def _kill(self, block: Block, reason: str) -> tuple[float, list[Fill]]:
         self.on_alert(f"kill switch at block {block.number}: {reason}")
         gas = self._apply(self.venue.cancel_all(block))
-        fills: list[Fill] = []
+        flatten_gas, fills = self._flatten(block) if self.portfolio.position else (0.0, [])
+        return gas + flatten_gas, fills
+
+    def _flatten(self, block: Block) -> tuple[float, list[Fill]]:
+        side = Side.SELL if self.portfolio.position > 0 else Side.BUY
+        receipt = self.venue.market_order(side, abs(self.portfolio.position), block)
+        gas = self._apply(receipt)
         if self.portfolio.position:
-            side = Side.SELL if self.portfolio.position > 0 else Side.BUY
-            receipt = self.venue.market_order(side, abs(self.portfolio.position), block)
-            gas += self._apply(receipt)
-            fills = list(receipt.fills)
-            if self.portfolio.position:
-                self.on_alert(f"flatten incomplete: {self.portfolio.position} still open (book too thin)")
-        return gas, fills
+            self.on_alert(f"flatten incomplete: {self.portfolio.position} still open ({receipt.error or 'book too thin'}); retrying next block")
+        return gas, list(receipt.fills)
 
     def _apply(self, receipt: TxReceipt) -> float:
         for fill in receipt.fills:
