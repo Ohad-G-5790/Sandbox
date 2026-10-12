@@ -17,6 +17,7 @@ from hftbot.market import Block
 from hftbot.rules import AlwaysQuoteEngine, RulesEngine
 from hftbot.sim import SimConfig, simulate
 from hftbot.solana import cli as solana_cli
+from hftbot.swing import cli as swing_cli
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -60,6 +61,7 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("jev-check", help="list available Jev models and time one live battery call")
     solana_commands = solana_cli.add_commands(sub)
+    swing_commands = swing_cli.add_commands(sub)
 
     args = parser.parse_args(argv)
     return {
@@ -70,6 +72,7 @@ def main(argv: list[str] | None = None) -> int:
         "calibrate": _calibrate,
         "jev-check": _jev_check,
         **solana_commands,
+        **swing_commands,
     }[args.command](args)
 
 

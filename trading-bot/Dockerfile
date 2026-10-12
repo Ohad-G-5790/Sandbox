@@ -10,7 +10,7 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY hftbot ./hftbot
 RUN pip install ".[solana]"
-COPY config.solana.toml config.example.toml ./
+COPY swing.toml config.solana.toml config.example.toml ./
 
 # Run as an unprivileged user; journals and recordings go to the /data volume.
 RUN useradd --create-home --uid 10001 bot && mkdir /data && chown bot /data
@@ -18,5 +18,6 @@ USER bot
 VOLUME /data
 
 ENTRYPOINT ["hftbot"]
-# Default: paper trading on live SOL/USDC data. No wallet, no orders. Needs HFTBOT_RPC_URL.
-CMD ["run", "--config", "config.solana.toml", "--journal", "/data/paper.jsonl"]
+# Default: the swing trader, paper trading SOL/BTC/ETH/JUP against USDC. No wallet, no real swaps.
+# On first start it downloads price history, runs the out-of-sample test, then checks once per 4-hour bar.
+CMD ["swing", "run", "--config", "swing.toml", "--data", "/data"]

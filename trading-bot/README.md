@@ -14,9 +14,37 @@ Code calculates, Jev interprets, code decides. Jev never trades: it answers six 
 a compact state (regime, direction, toxic flow, liquidity stress, quote environment, inventory pressure).
 Everything else, including every risk limit, is deterministic code.
 
+## Swing trader (the default)
+
+Fees decide everything for a small trader. Requoting an order book every 400 ms pays a fixed network fee
+thousands of times a day for a few pennies each; a trade that aims at a multi-percent move pays it once.
+So the main bot now trades **hours to days**: SOL, BTC, ETH and JUP (their Solana tokens) against USDC,
+through Jupiter, checked once per 4-hour bar.
+
+- **Strategies:** five well-known families (trend, breakout, momentum, dip buying, rotation into the
+  strongest coins), long-only spot, with small parameter grids (41 configurations in total).
+- **The bar to beat is holding.** Each family is tuned on the past and scored only on later data it never
+  saw (walk-forward), after fees, against buying the same coins and holding them. It must beat holding on
+  risk-adjusted return *and* worst drop, and on most coins individually, or nothing is traded.
+- **Running:** paper by default (fills at real Jupiter quotes when reachable); live swaps check the token
+  decimals on chain and refuse any swap priced more than 2% from the reference price. A 25% drawdown
+  sells everything to USDC and stays out until a human resets it. See [DEPLOY.md](DEPLOY.md).
+
+```sh
+hftbot swing test --synthetic     # what the report looks like (made-up prices)
+hftbot swing download             # ~5 years of hourly prices (needs internet)
+hftbot swing test                 # the real out-of-sample report
+hftbot swing run                  # paper trading, one decision per 4-hour bar
+```
+
+On made-up prices, nothing beats holding, and the report says so. Whether anything beats holding on real
+prices is exactly what the first cloud run will tell us.
+
+The rest of this README covers the block-speed market maker the project started with.
+
 ## Status: read this before anything else
 
-- **Built and tested (102 tests):** state engine, Jev client (real `typesafe-sdk` API), rule-based fallback,
+- **Built and tested (130 tests in total):** state engine, Jev client (real `typesafe-sdk` API), rule-based fallback,
   policy, A-S pricing, risk engine with latched kill switch, fallback ladder, paper venue with queue
   modeling and gas, backtester, calibration tools, break-even calculator, CLI.
 - **Solana (Phoenix + Jupiter):** market parser, recorder, paper trading on live data, live post-only

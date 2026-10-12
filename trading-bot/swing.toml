@@ -1,0 +1,27 @@
+# The swing trader: SOL, BTC, ETH and JUP against USDC on Jupiter, checked once per 4-hour bar.
+
+[swing]
+coins = ["SOL", "BTC", "ETH", "JUP"]
+bar_hours = 4
+source = "binance"            # "coinbase" on US servers (Binance's API refuses US addresses)
+history_start = "2021-01-01"
+strategy = "auto"             # trade the best strategy that beats holding out of sample, or nothing
+folds = 4
+
+# Costs per swap, used by the test and by paper trading without live quotes
+fee_bps = 10.0
+slippage_bps = 10.0
+network_fee = 0.002           # USD
+min_trade = 10.0              # USD
+rebalance_band = 0.05         # let positions drift 5% of equity before trading them back
+
+paper_cash = 1000.0           # simulated USDC for paper trading
+
+# Safety
+max_drawdown_pct = 25.0       # kill switch: sell everything to USDC and stay out until `swing reset-kill`
+max_weight_per_coin = 0.5
+sol_fee_reserve = 0.05        # SOL never traded, kept for network fees (live)
+max_price_deviation_pct = 2.0 # refuse a swap priced this far from the reference price
+swap_slippage_bps = 50
+max_data_delay_bars = 1.0     # no trading when prices are stale
+retest_hours = 168.0          # re-run the out-of-sample test weekly
