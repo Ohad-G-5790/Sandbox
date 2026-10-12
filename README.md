@@ -17,6 +17,11 @@ helper functions that run with plain `cargo test`.
 | [solana-message-board](programs/solana-message-board) | Stores a short UTF-8 message in an account |
 | [solana-account-inspector](programs/solana-account-inspector) | Logs metadata about every account passed in |
 
+## Trading bot
+
+[`trading-bot/`](trading-bot) is a separate Python project: a block-cadence market making bot with Jev
+judgments, hard risk limits, a paper venue and a backtester. See its README for status and how to run it.
+
 ## Publishing each program as its own repository
 
 `scripts/publish-repos.sh` creates one public GitHub repository per program and pushes

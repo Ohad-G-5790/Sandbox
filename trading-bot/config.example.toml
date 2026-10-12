@@ -1,0 +1,58 @@
+# Every value here is an example sized for the synthetic market (price ~100, tick 0.01).
+# Replace each one with numbers measured on your venue before trusting any result.
+
+[bot]
+starting_cash = 10000.0
+activation_delay_blocks = 1   # an order posted at block N is live from block N+1
+markout_blocks = 20           # adverse selection is measured this many blocks after each fill
+# jev_model = "jev-latest"
+# jev_pinned_model = "..."    # run `hftbot jev-check` and pin the exact model it reports
+
+[costs]
+maker_fee_bps = 0.0
+taker_fee_bps = 5.0
+gas_per_tx = 0.002            # quote currency per transaction; one cancel+post batch is one transaction
+
+[loop]
+block_interval_s = 0.3
+deadline_fraction = 0.8
+requote_ticks = 1             # keep resting quotes within 1 tick of target: fewer transactions, less gas
+
+[pricing]
+gamma = 0.3
+kappa = 50.0
+horizon_s = 30.0
+tick_size = 0.01
+lot_size = 1.0
+order_size = 10.0
+min_half_spread_bps = 2.0     # set from `hftbot breakeven`, never below it
+max_half_spread_bps = 100.0
+
+[policy]
+toxic_pull = 0.6
+stressed_widen = 0.7
+quote_min_score = 2.0
+quote_min_confidence = 0.8
+wide_min_score = 1.0
+confidence_gating = true
+direction_kelly = false       # only after `hftbot calibrate` shows the direction question is calibrated on your venue
+
+[risk]
+max_position = 100.0
+max_order_size = 20.0
+max_daily_loss = 200.0        # kill switch: cancel, flatten, alert, stay down until a human resets it
+max_drawdown = 300.0
+max_inventory_age_s = 900.0
+max_stale_data_s = 2.0
+max_leverage = 3.0
+max_api_errors = 5
+api_error_window_s = 60.0
+max_decision_latency_ms = 250.0
+
+[features]
+return_windows_s = [60.0, 300.0, 1800.0]
+flow_window_s = 60.0
+rv_short_s = 300.0
+rv_medium_s = 1800.0
+baseline_half_life_s = 86400.0
+depth_levels = 3

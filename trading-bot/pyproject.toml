@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hftbot"
+version = "0.1.0"
+description = "Block-cadence market making bot: deterministic state, Jev judgments, hard risk vetoes"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+# The Jev SDK is young and its API has already drifted from published examples: pin the minor version.
+jev = ["typesafe-sdk>=0.7.4,<0.8"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+hftbot = "hftbot.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["hftbot*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
