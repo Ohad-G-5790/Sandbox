@@ -18,7 +18,8 @@ def load_keypair(path: str | Path | None = None) -> Any:
     if not path:
         raise RuntimeError(f"set {KEYPAIR_ENV} to the path of a keypair file for a wallet funded only with what you can lose")
     file = Path(path).expanduser()
-    if file.stat().st_mode & 0o077:
+    # POSIX permission bits only mean something off Windows; there, keep the file inside your user folder.
+    if os.name != "nt" and file.stat().st_mode & 0o077:
         raise RuntimeError(f"{file} is readable by other users: chmod 600 it first")
     secret = json.loads(file.read_text())
     if not (isinstance(secret, list) and len(secret) == 64):
