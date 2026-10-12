@@ -16,7 +16,7 @@ Everything else, including every risk limit, is deterministic code.
 
 ## Status: read this before anything else
 
-- **Built and tested (97 tests):** state engine, Jev client (real `typesafe-sdk` API), rule-based fallback,
+- **Built and tested (102 tests):** state engine, Jev client (real `typesafe-sdk` API), rule-based fallback,
   policy, A-S pricing, risk engine with latched kill switch, fallback ladder, paper venue with queue
   modeling and gas, backtester, calibration tools, break-even calculator, CLI.
 - **Solana (Phoenix + Jupiter):** market parser, recorder, paper trading on live data, live post-only
@@ -98,6 +98,9 @@ pip install -e ".[solana]"
 export HFTBOT_RPC_URL=https://...        # a private RPC (Helius, Triton, QuickNode): the public one rate-limits,
                                          # and it must allow JSON-RPC batch requests
 ```
+
+To run it in the cloud instead of on your computer (Railway, Render, Fly.io or a small Linux server), see
+[DEPLOY.md](DEPLOY.md): the container paper trades by default and cancels its orders whenever the host stops it.
 
 Do these in order, and stop at the first step whose numbers look wrong:
 

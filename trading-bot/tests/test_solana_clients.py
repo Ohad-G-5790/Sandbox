@@ -217,3 +217,17 @@ def test_exit_refuses_high_impact_and_reports_failed_or_unconfirmed_swaps():
     assert "failed" in failed.error and failed.fills == ()
     lost = _exit(FakeJupiter(), FakeRpc([]), timeout=0.01).market_order(Side.SELL, 2.0, _block())
     assert "not confirmed" in lost.error and lost.fills == ()
+
+
+def test_keypair_from_secret_environment_variable(monkeypatch):
+    from solders.keypair import Keypair
+
+    from hftbot.solana.keys import load_keypair
+
+    kp = Keypair()
+    monkeypatch.setenv("HFTBOT_KEYPAIR_JSON", json.dumps(list(bytes(kp))))
+    assert load_keypair().pubkey() == kp.pubkey()
+    monkeypatch.setenv("HFTBOT_KEYPAIR_JSON", "[1, 2, 3, 4]")
+    with pytest.raises(RuntimeError) as error:
+        load_keypair()
+    assert "[1, 2" not in str(error.value)  # never echo a private key

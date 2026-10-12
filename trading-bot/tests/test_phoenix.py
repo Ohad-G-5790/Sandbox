@@ -392,3 +392,89 @@ def test_flatten_withdraws_market_funds_first_then_swaps():
     assert datas == [b"\x06", b"\x0c\x00\x00"]  # cancel all, then withdraw every free balance
     assert calls == [("swap", Side.SELL, 1.5, 1)]  # the swap comes after the withdraw was sent and confirmed
     assert receipt.error is None and receipt.gas > 0.01
+
+
+def test_sigterm_stops_a_paper_run_cleanly(monkeypatch, tmp_path, capsys):
+    import os
+    import signal as signal_module
+
+    import hftbot.solana.cli as solana_cli
+    from hftbot.cli import main
+
+    rpc = FakeRpc(sample_market())
+    monkeypatch.setattr(solana_cli, "SolanaRpc", lambda *a, **k: rpc)
+    real_run_live = solana_cli.run_live
+
+    def run_then_get_terminated(feed, loop, on_step, **kw):
+        def step(record):
+            on_step(record)
+            if record.block == 3:
+                os.kill(os.getpid(), signal_module.SIGTERM)  # what a cloud host sends on redeploy
+
+        return real_run_live(feed, loop, on_step=step, **kw)
+
+    monkeypatch.setattr(solana_cli, "run_live", run_then_get_terminated)
+    config = tmp_path / "fast.toml"
+    config.write_text(open(__file__.replace("tests/test_phoenix.py", "config.solana.toml")).read().replace("block_interval_s = 0.4", "block_interval_s = 0.001"))
+    before = signal_module.getsignal(signal_module.SIGTERM)
+    assert main(["run", "--config", str(config)]) == 0
+    out = capsys.readouterr().out
+    assert "stopping: resting orders were cancelled" in out and "done: 3 blocks" in out
+    assert signal_module.getsignal(signal_module.SIGTERM) is before
+
+
+def test_live_start_cancels_orders_left_by_a_previous_run(monkeypatch, tmp_path, capsys):
+    import os
+    import stat
+
+    from solders.keypair import Keypair
+    from solders.pubkey import Pubkey
+    from solders.transaction import Transaction
+
+    import hftbot.solana.cli as solana_cli
+    from hftbot.cli import main
+    from hftbot.solana.phoenix import TraderAccounts, parse_header
+
+    kp = Keypair()
+    me = bytes(kp.pubkey())
+    data = market_account([order(150_000, 1, 1, 500, bid=True)], [order(150_500, 2, 1, 500)], [trader(me)])
+    accounts = TraderAccounts.derive(Pubkey.from_string(MARKET), kp.pubkey(), parse_header(data))
+    seat = bytearray(128)
+    struct.pack_into("<Q", seat, 72, 1)
+
+    class LiveRpc(FakeRpc):
+        def get_account_data(self, pubkey, commitment="confirmed", data_slice=None):
+            if pubkey == str(accounts.seat):
+                return self.slot, bytes(seat)
+            return super().get_account_data(pubkey, commitment, data_slice)
+
+        def get_token_balance(self, account, commitment="confirmed"):
+            return 10**9
+
+        def get_balance(self, pubkey, commitment="confirmed"):
+            return 10**9
+
+    rpc = LiveRpc(data)
+    monkeypatch.setattr(solana_cli, "SolanaRpc", lambda *a, **k: rpc)
+    monkeypatch.setattr(solana_cli, "run_live", lambda feed, loop, **kw: 0)
+    monkeypatch.setenv("HFTBOT_KEYPAIR_JSON", json.dumps(list(bytes(kp))))
+    monkeypatch.setenv("HFTBOT_CONFIRM_WALLET", str(kp.pubkey()))
+
+    assert main(["run", "--live"]) == 0
+    assert "cancelling 2 orders left by a previous run" in capsys.readouterr().out
+    (sent,) = rpc.sent
+    assert [bytes(ix.data) for ix in Transaction.from_bytes(sent).message.instructions[2:]] == [b"\x06"]
+
+
+def test_unreachable_rpc_is_a_clean_error(monkeypatch, capsys):
+    import hftbot.solana.cli as solana_cli
+    from hftbot.cli import main
+    from hftbot.solana.rpc import RpcError
+
+    class DownRpc:
+        def get_account_data(self, *a, **k):
+            raise RpcError("getAccountInfo: connection refused")
+
+    monkeypatch.setattr(solana_cli, "SolanaRpc", lambda *a, **k: DownRpc())
+    assert main(["run"]) == 1
+    assert "cannot read market" in capsys.readouterr().err

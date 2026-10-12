@@ -7,6 +7,7 @@ import dataclasses
 import json
 import logging
 import os
+import signal
 import struct
 import sys
 import time
@@ -20,6 +21,7 @@ from hftbot.features import StateEngine
 from hftbot.journal import Journal, block_to_dict
 from hftbot.live import FeedError, run_live
 from hftbot.loop import StepRecord, TradingLoop
+from hftbot.market import Block
 from hftbot.portfolio import Portfolio
 from hftbot.risk import RiskEngine
 from hftbot.rules import RulesEngine
@@ -52,12 +54,12 @@ def add_commands(sub: Any) -> dict[str, Callable[[argparse.Namespace], int]]:
     p.add_argument("--journal", type=Path)
     p.add_argument("--minutes", type=float)
     p.add_argument("--engine", choices=("rules", "jev"), default="rules")
-    p.add_argument("--live", action="store_true", help="send real orders from the wallet in $HFTBOT_KEYPAIR")
-    p.add_argument("--confirm-wallet", help="required with --live: the wallet's public key, to confirm which money is at risk")
+    p.add_argument("--live", action="store_true", help="send real orders from the wallet in $HFTBOT_KEYPAIR or $HFTBOT_KEYPAIR_JSON")
+    p.add_argument("--confirm-wallet", default=os.environ.get("HFTBOT_CONFIRM_WALLET"), help="required with --live (or set HFTBOT_CONFIRM_WALLET): the wallet's public key, to confirm which money is at risk")
 
     p = sub.add_parser("claim-seat", help="claim a Phoenix trading seat for the wallet in $HFTBOT_KEYPAIR (one time, ~0.004 SOL refundable)")
     connection(p)
-    p.add_argument("--confirm-wallet", required=True)
+    p.add_argument("--confirm-wallet", default=os.environ.get("HFTBOT_CONFIRM_WALLET"), help="the wallet's public key (or set HFTBOT_CONFIRM_WALLET)")
 
     return {"market-info": _market_info, "record": _record, "run": _run, "claim-seat": _claim_seat}
 
@@ -121,7 +123,11 @@ def _run(args: argparse.Namespace) -> int:
         if args.confirm_wallet != str(keypair.pubkey()):
             print(f"--live trades real money from {keypair.pubkey()}. Pass --confirm-wallet {keypair.pubkey()} to proceed.", file=sys.stderr)
             return 2
-    feed = PhoenixFeed(rpc, args.market, trader=str(keypair.pubkey()) if keypair else None, poll_interval_s=cfg.loop.block_interval_s)
+    try:
+        feed = PhoenixFeed(rpc, args.market, trader=str(keypair.pubkey()) if keypair else None, poll_interval_s=cfg.loop.block_interval_s)
+    except (RpcError, FeedError, ValueError) as error:
+        print(f"cannot read market {args.market} via {args.rpc}: {error}", file=sys.stderr)
+        return 1
     h = feed.header
     # Quotes must sit on the market's own grid, or every comparison with resting orders looks like a change.
     cfg = dataclasses.replace(cfg, pricing=dataclasses.replace(cfg.pricing, tick_size=h.tick_price, lot_size=h.lot_units))
@@ -151,8 +157,15 @@ def _run(args: argparse.Namespace) -> int:
     )
     if keypair is not None:
         venue.on_error = loop.risk.record_api_error
+        leftovers = feed.our_orders()
+        if leftovers:  # a previous run died without cancelling (crash, out of memory, host restart)
+            print(f"cancelling {len(leftovers)} orders left by a previous run")
+            venue.cancel_all(Block(0, time.time(), feed.state.book(feed.slot, time.time())))
 
-    journal = Journal(args.journal) if args.journal else None
+    # Cloud hosts stop a service with SIGTERM: turn it into the same clean stop as Ctrl+C, so resting
+    # orders are cancelled before the process exits.
+    previous_handler = signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
+    journal = Journal(args.journal, append=True) if args.journal else None
     deadline = time.monotonic() + args.minutes * 60 if args.minutes else None
     count = 0
 
@@ -170,6 +183,7 @@ def _run(args: argparse.Namespace) -> int:
     except KeyboardInterrupt:
         print("stopping: resting orders were cancelled")
     finally:
+        signal.signal(signal.SIGTERM, previous_handler)
         if journal:
             journal.close()
     p = loop.portfolio
@@ -177,6 +191,10 @@ def _run(args: argparse.Namespace) -> int:
     if loop.risk.killed:
         print(f"KILL SWITCH: {loop.risk.kill_reason}")
     return 0
+
+
+def _raise_keyboard_interrupt(signum: int, frame: Any) -> None:
+    raise KeyboardInterrupt
 
 
 def _engine(name: str, cfg: BotConfig) -> Any:

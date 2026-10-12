@@ -31,11 +31,13 @@ def step_to_dict(r: StepRecord) -> dict[str, Any]:
 
 
 class Journal:
-    def __init__(self, path: str | Path) -> None:
-        self._file: IO[str] = open(path, "w", encoding="utf-8")
+    def __init__(self, path: str | Path, append: bool = False) -> None:
+        self._file: IO[str] = open(path, "a" if append else "w", encoding="utf-8")
 
     def write(self, record: StepRecord) -> None:
         self._file.write(json.dumps(step_to_dict(record), separators=(",", ":")) + "\n")
+        if record.block % 50 == 0:
+            self._file.flush()
 
     def close(self) -> None:
         self._file.close()

@@ -59,3 +59,18 @@ def test_report_labels_outcomes_from_later_blocks():
     up = reports[("direction", "up")]
     assert up.n == 2 and up.base_rate == 0.5  # block 0 -> 2 went up 10 bps, block 1 -> 3 went down
     assert reports[("toxic_flow", "yes")].base_rate == 0.5
+
+
+def test_appended_runs_are_labeled_within_their_own_run():
+    def rec(block, mid):
+        return {
+            "block": block,
+            "mid": mid,
+            "snapshot": {"book": {"spread_bps": 2.0}, "flow_1m": {"buy_ratio": 0.5}},
+            "decision": {"answers": {"direction": {"type": "choice", "probabilities": {"up": 0.6, "down": 0.4, "neutral": 0.0}}}},
+        }
+
+    # Run 1 goes up after block 1; run 2 restarts numbering and goes down. Mixing them would mislabel.
+    records = [rec(1, 100.0), rec(2, 100.5), rec(1, 100.0), rec(2, 99.5)]
+    up = {r.label: r for r in calibration_report(records, horizon_blocks=1)}["up"]
+    assert up.n == 2 and up.base_rate == 0.5

@@ -127,7 +127,6 @@ def label_outcomes(records: Sequence[Mapping[str, Any]], horizon_blocks: int = 1
     direction:  up / down / neutral, neutral meaning within half the spread at decision time.
     toxic_flow: 1 if mid moved at least `toxic_move_bps` in the direction of the dominant taker flow.
     """
-    by_block = {r["block"]: r for r in records}
     pairs: dict[str, tuple[list[float], list[int]]] = {}
 
     def add(key: str, p: float, y: int) -> None:
@@ -135,9 +134,16 @@ def label_outcomes(records: Sequence[Mapping[str, Any]], horizon_blocks: int = 1
         probs.append(p)
         outcomes.append(y)
 
-    for r in records:
+    # A journal appended to across restarts holds several runs, each numbering blocks from the start:
+    # an outcome must come from the same run as its decision.
+    run_of: list[int] = []
+    for i, r in enumerate(records):
+        run_of.append(run_of[-1] + (r["block"] <= records[i - 1]["block"]) if i else 0)
+    by_block = {(run, r["block"]): r for run, r in zip(run_of, records)}
+
+    for run, r in zip(run_of, records):
         decision, snap = r.get("decision"), r.get("snapshot")
-        later = by_block.get(r["block"] + horizon_blocks)
+        later = by_block.get((run, r["block"] + horizon_blocks))
         if not decision or not snap or later is None:
             continue
         move_bps = (later["mid"] / r["mid"] - 1) * 1e4
