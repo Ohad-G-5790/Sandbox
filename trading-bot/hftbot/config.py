@@ -14,6 +14,7 @@ from hftbot.loop import LoopConfig
 from hftbot.policy import PolicyConfig
 from hftbot.pricing import PricingConfig
 from hftbot.risk import RiskLimits
+from hftbot.solana.venue import LiveConfig
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,7 @@ class BotConfig:
     risk: RiskLimits = field(default_factory=RiskLimits)
     costs: CostModel = field(default_factory=CostModel)
     loop: LoopConfig = field(default_factory=LoopConfig)
+    live: LiveConfig = field(default_factory=LiveConfig)
 
 
 _SECTIONS = {
@@ -39,6 +41,7 @@ _SECTIONS = {
     "risk": RiskLimits,
     "costs": CostModel,
     "loop": LoopConfig,
+    "live": LiveConfig,
 }
 
 

@@ -87,6 +87,7 @@ def test_swap_request_sends_quote_back_with_capped_priority_fee():
     assert tx == b"unsigned"
     assert body["quoteResponse"] == QUOTE and body["userPublicKey"] == "Wallet111"
     assert body["prioritizationFeeLamports"]["priorityLevelWithMaxLamports"]["maxLamports"] == 5000
+    assert body["wrapAndUnwrapSol"] is False  # never swap the native SOL kept for fees
 
 
 def test_error_payload_raises():

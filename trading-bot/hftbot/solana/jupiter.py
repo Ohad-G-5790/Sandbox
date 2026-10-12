@@ -69,12 +69,16 @@ class JupiterClient:
         except (KeyError, TypeError, ValueError) as error:
             raise JupiterError(f"unexpected quote response: {error}") from error
 
-    def swap_transaction(self, quote: SwapQuote, user_pubkey: str, max_priority_lamports: int = 1_000_000) -> bytes:
-        """The unsigned versioned transaction for `quote`, with a capped priority fee."""
+    def swap_transaction(self, quote: SwapQuote, user_pubkey: str, max_priority_lamports: int = 1_000_000, wrap_and_unwrap_sol: bool = False) -> bytes:
+        """The unsigned versioned transaction for `quote`, with a capped priority fee.
+
+        `wrap_and_unwrap_sol` is off: the bot's SOL inventory is wrapped SOL in its token account, and the
+        native SOL balance is reserved for fees. Turning it on would swap the fee balance instead.
+        """
         body = {
             "quoteResponse": quote.raw,
             "userPublicKey": user_pubkey,
-            "wrapAndUnwrapSol": True,
+            "wrapAndUnwrapSol": wrap_and_unwrap_sol,
             "dynamicComputeUnitLimit": True,
             "prioritizationFeeLamports": {"priorityLevelWithMaxLamports": {"priorityLevel": "veryHigh", "maxLamports": max_priority_lamports}},
         }

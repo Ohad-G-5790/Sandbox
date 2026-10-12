@@ -1,0 +1,46 @@
+# Phoenix SOL/USDC. Sizes are in SOL, money in USDC. Small on purpose: start here, scale only with evidence.
+# Tick and lot sizes are read from the market itself at startup.
+
+[bot]
+starting_cash = 500.0          # accounting baseline in USDC; PnL is measured from here
+activation_delay_blocks = 1
+markout_blocks = 25            # ~10 s of slots
+
+[loop]
+block_interval_s = 0.4         # one poll per Solana slot
+deadline_fraction = 0.8
+requote_ticks = 10             # SOL/USDC tick is $0.001: keep quotes within ~0.7 bps of target, every requote is a fee
+
+[pricing]
+gamma = 2.0
+kappa = 30.0                   # 1/price units: fills mostly within ~$0.03 of mid
+horizon_s = 30.0
+order_size = 0.5               # SOL per side
+min_half_spread_bps = 3.0      # replace with `hftbot breakeven` using your measured fill rate and adverse selection
+max_half_spread_bps = 50.0
+
+[policy]
+toxic_pull = 0.6
+stressed_widen = 0.7
+quote_min_score = 2.0
+wide_min_score = 1.0
+
+[risk]
+max_position = 3.0             # SOL either way from where you started
+max_order_size = 1.0
+max_daily_loss = 15.0          # USDC: kill switch, then flatten through Jupiter
+max_drawdown = 25.0
+max_inventory_age_s = 600.0
+max_stale_data_s = 3.0
+max_leverage = 2.0
+max_api_errors = 5
+api_error_window_s = 60.0
+max_decision_latency_ms = 300.0
+
+[live]
+compute_unit_limit = 200000
+priority_micro_lamports = 20000   # 0.004 lamports/CU -> ~4,000 lamports priority per tx on top of the 5,000 base fee
+pending_slots = 4
+exit_slippage_bps = 100
+exit_max_impact_pct = 1.0
+exit_max_priority_lamports = 2000000

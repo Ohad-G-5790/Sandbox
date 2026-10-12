@@ -1,4 +1,4 @@
-"""Command line: simulate data, backtest, compare engines, check break-even, score calibration, check Jev."""
+"""Command line: simulate, backtest, compare engines, break-even, calibration, Jev check, and live Solana commands."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from hftbot.judgments import DecisionEngine
 from hftbot.market import Block
 from hftbot.rules import AlwaysQuoteEngine, RulesEngine
 from hftbot.sim import SimConfig, simulate
+from hftbot.solana import cli as solana_cli
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -58,6 +59,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--horizon", type=int, default=10, help="blocks ahead (match the direction question)")
 
     sub.add_parser("jev-check", help="list available Jev models and time one live battery call")
+    solana_commands = solana_cli.add_commands(sub)
 
     args = parser.parse_args(argv)
     return {
@@ -67,6 +69,7 @@ def main(argv: list[str] | None = None) -> int:
         "breakeven": _breakeven,
         "calibrate": _calibrate,
         "jev-check": _jev_check,
+        **solana_commands,
     }[args.command](args)
 
 

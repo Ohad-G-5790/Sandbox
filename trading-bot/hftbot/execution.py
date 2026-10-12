@@ -44,6 +44,7 @@ class TxReceipt:
     fills: tuple[Fill, ...] = ()
     rejected: tuple[Quote, ...] = ()
     error: str | None = None
+    signature: str | None = None
 
 
 @dataclass
