@@ -10,7 +10,7 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY hftbot ./hftbot
 RUN pip install ".[solana]"
-COPY swing.toml config.solana.toml config.example.toml ./
+COPY swing.toml swing-50.toml config.solana.toml config.example.toml ./
 
 # Run as an unprivileged user; journals and recordings go to the /data volume.
 RUN useradd --create-home --uid 10001 bot && mkdir /data && chown bot /data

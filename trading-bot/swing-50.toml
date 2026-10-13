@@ -1,0 +1,29 @@
+# The swing trader sized for a $50 account. Same strategies and safety; less money left idle.
+#
+# Expectations: even a strategy that beats holding by 10% a year makes about $5 a year on $50.
+# Use this to learn and to prove the bot with real money at tiny risk, not for income.
+# The server must be free (see DEPLOY.md): a $5/month host costs more per year than the whole account.
+
+[swing]
+coins = ["SOL", "BTC", "ETH", "JUP"]
+bar_hours = 4
+source = "binance"
+history_start = "2021-01-01"
+strategy = "auto"
+folds = 4
+
+fee_bps = 10.0
+slippage_bps = 10.0
+network_fee = 0.002
+min_trade = 5.0               # each coin's share of $50 is $12.50: allow adjustments down to $5
+rebalance_band = 0.05
+
+paper_cash = 50.0
+
+max_drawdown_pct = 25.0       # at most about $12.50 lost before it sells everything to USDC and stops
+max_weight_per_coin = 0.5
+sol_fee_reserve = 0.01        # ~$1.50 of SOL kept for network fees: hundreds of swaps
+max_price_deviation_pct = 2.0
+swap_slippage_bps = 50
+max_data_delay_bars = 1.0
+retest_hours = 168.0

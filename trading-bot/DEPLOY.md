@@ -17,6 +17,17 @@ run it. It needs a host that keeps a container running.
 **Region and price source.** Binance's price API refuses US addresses. In Europe (you are in Germany:
 pick an EU region) the default works. On a US region, set the variable `HFTBOT_SWING_SOURCE=coinbase`.
 
+## Small accounts: use a free server
+
+Railway costs about $5 a month, $60 a year. On a $50 account that is more than the account itself, so
+for small money use a free host instead:
+
+- **Oracle Cloud "Always Free"**: a small Linux server that stays free, with a Frankfurt region (good
+  for Germany and for Binance). Sign up at oracle.com/cloud/free (it asks for a card to verify you, but
+  Always Free resources are not charged), create an Ubuntu instance, then follow Option B below.
+- Run the bot with the $50 settings: `swing run --config swing-50.toml --data /data`
+  (`docker run ... hftbot swing run --config swing-50.toml --data /data`).
+
 ## Option A: Railway (no server to manage)
 
 1. Sign in at railway.com with GitHub, then **New Project → Deploy from GitHub repo → Ohad-G-5790/Sandbox**.
