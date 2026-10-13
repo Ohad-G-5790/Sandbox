@@ -272,3 +272,45 @@ def format_report(report: Report) -> str:
     lines.append("")
     lines.append("Holding each coin alone over the same period: " + ", ".join(f"{c} {m.total_return:+.0%} (worst drop {m.max_drawdown:.0%})" for c, m in report.hold_by_coin.items()))
     return "\n".join(lines)
+
+
+# --- How account size changes the fee bill ------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class SizeRow:
+    cash: float
+    trades_per_year: float
+    fees_per_year_pct: float
+    """All costs paid per year, as a percentage of the starting account."""
+    fixed_fees_per_year_pct: float
+    """Just the fixed network fees, as a percentage of the starting account."""
+    gross_cagr: float
+    net_cagr: float
+
+
+def size_sweep(panel: Panel, strategy: Strategy, costs: SwingCosts, sizes: Sequence[float], start: int = 0, end: int | None = None) -> list[SizeRow]:
+    """Run one strategy at several account sizes. Gross runs trade the same way with zero fees, so
+    gross minus net is exactly what the fees took."""
+    end = len(panel) if end is None else end
+    w = strategy.weights(panel)
+    hold = strategy.family == "hold"
+    free = SwingCosts(0.0, 0.0, 0.0, costs.min_trade, costs.rebalance_band)
+    rows = []
+    for cash in sizes:
+        equity, trades, paid, exposure, _ = simulate(panel, w, costs, start, end, cash, entry_only=hold)
+        net = metrics(equity, cash, trades, paid, exposure, panel.bar_hours)
+        g_equity, g_trades, _, g_exposure, _ = simulate(panel, w, free, start, end, cash, entry_only=hold)
+        gross = metrics(g_equity, cash, g_trades, 0.0, g_exposure, panel.bar_hours)
+        years = max(net.years, 1e-9)
+        rows.append(
+            SizeRow(
+                cash=cash,
+                trades_per_year=net.trades_per_year,
+                fees_per_year_pct=paid / years / cash * 100,
+                fixed_fees_per_year_pct=trades * costs.network_fee / years / cash * 100,
+                gross_cagr=gross.cagr,
+                net_cagr=net.cagr,
+            )
+        )
+    return rows

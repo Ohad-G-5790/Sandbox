@@ -396,3 +396,16 @@ def test_a_failed_bar_is_retried_soon_not_next_bar(tmp_path):
     sleeps = []
     trader.run_forever(should_stop=lambda: len(sleeps) >= 1, sleep=sleeps.append)
     assert sleeps == [300.0]
+
+
+def test_size_sweep_fixed_fees_shrink_and_tiny_accounts_cannot_trade():
+    from hftbot.swing.research import size_sweep
+
+    hourly = synthetic_hourly(("A", "B", "C", "D"), years=1, seed=6)
+    panel = align({c: resample(v, 4) for c, v in hourly.items()}, 4)
+    rows = size_sweep(panel, Strategy("trend", {"fast_h": 24, "slow_h": 168}), SwingCosts(network_fee=0.05), [20, 1_000, 100_000])
+    tiny, mid, big = rows
+    assert tiny.trades_per_year == 0  # a quarter of $20 is below the $10 minimum trade
+    assert mid.fixed_fees_per_year_pct > big.fixed_fees_per_year_pct * 50
+    assert abs(mid.fees_per_year_pct - mid.fixed_fees_per_year_pct - (big.fees_per_year_pct - big.fixed_fees_per_year_pct)) < 0.5
+    assert all(r.gross_cagr >= r.net_cagr for r in rows)

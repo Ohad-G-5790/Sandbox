@@ -34,6 +34,11 @@ def add_commands(sub: Any) -> dict[str, Any]:
     p = commands.add_parser("test", help="out-of-sample test of every strategy against holding, after fees")
     common(p)
     p.add_argument("--synthetic", action="store_true", help="run on made-up prices (to see how the report reads)")
+    p = commands.add_parser("sizes", help="how account size changes what fees take, per strategy")
+    common(p)
+    p.add_argument("--synthetic", action="store_true", help="run on made-up prices")
+    p.add_argument("--cash", default="25,50,100,250,500,1000,5000,25000", help="comma-separated account sizes in USD")
+    p.add_argument("--network-fee", type=float, help="USD per swap; overrides the config (try 0.05 for a congested network)")
     p = commands.add_parser("run", help="trade every bar: paper unless --live")
     common(p)
     p.add_argument("--live", action="store_true", help="swap real tokens from the wallet in $HFTBOT_KEYPAIR or $HFTBOT_KEYPAIR_JSON")
@@ -47,7 +52,7 @@ def add_commands(sub: Any) -> dict[str, Any]:
     p.add_argument("--live", action="store_true")
 
     def dispatch(args: argparse.Namespace) -> int:
-        return {"download": _download, "test": _test, "run": _run, "status": _status, "reset-kill": _reset_kill}[args.swing_command](args)
+        return {"download": _download, "test": _test, "sizes": _sizes, "run": _run, "status": _status, "reset-kill": _reset_kill}[args.swing_command](args)
 
     return {"swing": dispatch}
 
@@ -75,15 +80,45 @@ def _download(args: argparse.Namespace) -> int:
 
 def _test(args: argparse.Namespace) -> int:
     cfg = _config(args)
+    print(format_report(walk_forward(_panel(args, cfg), cfg.costs, cfg.folds)))
+    return 0
+
+
+def _panel(args: argparse.Namespace, cfg: SwingConfig) -> Any:
     if args.synthetic:
         from hftbot.swing.synthetic import synthetic_hourly
 
+        print("MADE-UP PRICES: fees and trade counts are meaningful, returns are not.\n")
         hourly = synthetic_hourly(cfg.coins)
-        panel = align({c: resample(v, cfg.bar_hours) for c, v in hourly.items()}, cfg.bar_hours)
-        print("MADE-UP PRICES: this shows how the report reads, nothing about real markets.\n")
-    else:
-        panel = CandleStore(args.data / "candles", cfg).panel(time.time(), update=False)
-    print(format_report(walk_forward(panel, cfg.costs, cfg.folds)))
+        return align({c: resample(v, cfg.bar_hours) for c, v in hourly.items()}, cfg.bar_hours)
+    return CandleStore(args.data / "candles", cfg).panel(time.time(), update=False)
+
+
+def _sizes(args: argparse.Namespace) -> int:
+    from hftbot.swing.research import _boundaries, size_sweep
+    from hftbot.swing.strategies import Strategy
+
+    cfg = _config(args)
+    costs = cfg.costs if args.network_fee is None else dataclasses.replace(cfg.costs, network_fee=args.network_fee)
+    sizes = [float(x) for x in args.cash.split(",")]
+    panel = _panel(args, cfg)
+    report = walk_forward(panel, costs, cfg.folds)
+    start = _boundaries(len(panel), cfg.folds)[0]
+    print(f"Fees per year as % of the account (network fee ${costs.network_fee} per swap, {costs.fee_bps + costs.slippage_bps:g} bps per swap, min trade ${costs.min_trade:g}).")
+    print("Each strategy uses its configuration chosen on all history, over the out-of-sample period.\n")
+    picks = [Strategy("hold")] + [r.final_pick for r in report.families]
+    header = f"{'account':>9}" + "".join(f"{p.family:>11}" for p in picks)
+    for title, value in (
+        ("fees per year, % of account", lambda r: f"{r.fees_per_year_pct:>10.2f}%"),
+        ("of which fixed network fees", lambda r: f"{r.fixed_fees_per_year_pct:>10.3f}%"),
+        ("trades per year", lambda r: f"{r.trades_per_year:>11.0f}"),
+    ):
+        print(title)
+        print(header)
+        rows = {p.family: size_sweep(panel, p, costs, sizes, start) for p in picks} if title.startswith("fees") else rows
+        for i, cash in enumerate(sizes):
+            print(f"{'$' + format(cash, ',.0f'):>9}" + "".join(value(rows[p.family][i]) for p in picks))
+        print()
     return 0
 
 
